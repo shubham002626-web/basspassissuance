@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwiftPass Elite | Premium Issuance Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --accent-orange: #f97316;
+            --accent-indigo: #6366f1;
+            --bg-light: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-light);
+            color: #0f172a;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 40%);
+        }
+
+        /* Decorative Light Elements */
+        .light-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 20s infinite alternate;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: rgba(99, 102, 241, 0.1);
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(249, 115, 22, 0.1);
+            bottom: -100px;
+            right: -100px;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(30px, 60px) scale(1.05);
+            }
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .premium-btn {
+            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        .pass-card-premium {
+            background: linear-gradient(145deg, #1e1b4b, #312e81);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-premium {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .input-premium:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.1);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+    <div class="light-mesh">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="container mx-auto mb-12 flex justify-between items-center glass p-5 rounded-[2.5rem]">
+        <div class="flex items-center gap-4">
+            <div
+                class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <span class="text-2xl">🚌</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 leading-none">SwiftPass<span
+                        class="text-orange-500 italic">Elite</span></h1>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-bold mt-1">Smart Mobility</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden md:flex items-center gap-2">
+                <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Portal Online</span>
+            </div>
+            <a href="buspass_validation.html"
+                class="nav-link glass px-6 py-2.5 rounded-full text-xs font-bold text-slate-700 border-slate-100">
+                Verification Hub →
+            </a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto max-w-6xl grid lg:grid-cols-12 gap-10 items-start">
+        <!-- FORM SECTION -->
+        <section class="lg:col-span-12 xl:col-span-5 space-y-8">
+            <div class="glass-card p-10 rounded-[3rem]">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">Activate Pass</h2>
+                    <p class="text-slate-500 text-sm leading-relaxed">Secure your digital bus pass for the premium city
+                        transit network.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Cardholder
+                            Name</label>
+                        <input type="text" id="userName" placeholder="e.g. Alexander Pierce"
+                            class="input-premium w-full p-4 rounded-2xl outline-none text-slate-900 placeholder:text-slate-300 font-semibold" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Membership
+                            Tier</label>
+                        <div class="relative">
+                            <select id="passType"
+                                class="input-premium w-full p-4 rounded-2xl outline-none text-slate-900 appearance-none cursor-pointer font-semibold">
+                                <option value="Student">Student Access (30 Days)</option>
+                                <option value="General">General Commuter (30 Days)</option>
+                                <option value="Senior">Senior Citizen (365 Days)</option>
+                                <option value="Staff">Transit Staff (Unified)</option>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-5 rounded-2xl flex justify-between items-center border-slate-50 bg-slate-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-indigo-500/10 rounded-lg"><svg class="w-4 h-4 text-indigo-500"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg></div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Validity
+                                Period</span>
+                        </div>
+                        <span id="expiryDisplay"
+                            class="text-sm font-black text-slate-700 px-3 py-1 rounded-lg bg-white border border-slate-100 shadow-sm">...</span>
+                    </div>
+
+                    <button id="issueBtn"
+                        class="premium-btn w-full py-5 rounded-2xl text-white font-black uppercase tracking-widest text-sm flex justify-center items-center gap-3 group">
+                        <span>Generate Digital Pass</span>
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+
+                    <p class="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">End-to-End
+                        Encrypted Activation</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PREVIEW SECTION -->
+        <section class="lg:col-span-12 xl:col-span-7 flex flex-col items-center justify-center pt-8">
+            <div id="passCard"
+                class="hidden w-full max-md pass-card-premium rounded-[3rem] p-10 relative overflow-hidden transform animate-in zoom-in duration-700">
+                <!-- Inner Accents -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 blur-[100px]"></div>
+
+                <div class="flex justify-between items-start mb-14 relative z-10">
+                    <div>
+                        <h3 class="text-2xl font-black text-white tracking-tighter italic">SWIFTPASS <span
+                                class="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600">PREMIUM</span>
+                        </h3>
+                        <p class="text-[9px] font-bold uppercase tracking-[0.4em] text-indigo-200 opacity-60 mt-1">
+                            Passenger ID System</p>
+                    </div>
+                    <div
+                        class="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl border border-white/20">
+                        <span class="text-2xl">🚌</span>
+                    </div>
+                </div>
+
+                <div class="mb-12 relative z-10">
+                    <p id="displayUsername" class="text-3xl font-black text-white tracking-tight uppercase"></p>
+                    <div id="displayType"
+                        class="mt-2 inline-block px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 border border-white/20 rounded-full">
+                    </div>
+                </div>
+
+                <div class="relative z-10 flex flex-col md:flex-row items-center gap-8 mb-12">
+                    <div class="bg-white p-5 rounded-[2.5rem] shadow-2xl">
+                        <div id="qrcode"></div>
+                    </div>
+                    <div class="flex-1 space-y-4 text-center md:text-left">
+                        <div>
+                            <p class="text-[8px] font-bold uppercase text-indigo-200 opacity-50 tracking-[0.2em]">Asset
+                                Index</p>
+                            <p id="displayId" class="text-xs font-bold text-white font-mono opacity-80"></p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-bold uppercase text-indigo-200 opacity-50 tracking-[0.2em]">Access
+                                Expiry</p>
+                            <p id="displayExpiry" class="text-lg font-black text-white"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center relative z-10 pt-6 border-t border-white/10">
+                    <p class="text-[9px] font-bold text-indigo-200 opacity-40 uppercase tracking-widest leading-none">
+                        Metro Unified Access</p>
+                    <button id="downloadPngBtn"
+                        class="bg-white/10 hover:bg-white/20 p-3 rounded-xl transition-all border border-white/10 group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform text-white" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="placeholderText" class="text-center space-y-6">
+                <div
+                    class="w-24 h-24 bg-white rounded-[2.5rem] mx-auto flex items-center justify-center shadow-xl border border-slate-50 relative">
+                    <div class="absolute inset-0 bg-orange-500/5 blur-2xl rounded-full"></div>
+                    <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-slate-900 font-black uppercase tracking-[0.3em] text-xs">Awaiting Input</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase">Complete the form to preview pass</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const userNameInput = document.getElementById("userName");
+        const passTypeInput = document.getElementById("passType");
+        const expiryDisplay = document.getElementById("expiryDisplay");
+        const issueBtn = document.getElementById("issueBtn");
+        const qrDiv = document.getElementById("qrcode");
+
+        function updatePlanDates() {
+            const today = new Date();
+            let daysToAdd = passTypeInput.value === "Senior" ? 365 : (passTypeInput.value === "Staff" ? 999 : 30);
+            const expiryDate = new Date(today.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+            const dateString = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            expiryDisplay.innerText = dateString;
+            return dateString;
+        }
+
+        issueBtn.addEventListener("click", () => {
+            const name = userNameInput.value.trim();
+            const exp = updatePlanDates();
+
+            if (!name) {
+                userNameInput.classList.add('border-orange-500');
+                setTimeout(() => userNameInput.classList.remove('border-orange-500'), 2000);
+                return;
+            }
+
+            const payloadData = {
+                n: name,
+                t: passTypeInput.value,
+                e: exp,
+                id: 'SP-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                issuedAt: new Date().toLocaleTimeString()
+            };
+
+            const registry = JSON.parse(localStorage.getItem('swiftpass_registry') || '[]');
+            registry.unshift(payloadData);
+            localStorage.setItem('swiftpass_registry', JSON.stringify(registry));
+
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+                text: JSON.stringify(payloadData),
+                width: 160,
+                height: 160,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById("displayUsername").innerText = name;
+            document.getElementById("displayType").innerText = passTypeInput.value + " Tier";
+            document.getElementById("displayExpiry").innerText = exp.toUpperCase();
+            document.getElementById("displayId").innerText = payloadData.id;
+
+            document.getElementById("passCard").classList.remove("hidden");
+            document.getElementById("placeholderText").classList.add("hidden");
+
+            if (navigator.vibrate) navigator.vibrate(50);
+        });
+
+        document.getElementById("downloadPngBtn").addEventListener("click", async () => {
+            const card = document.getElementById("passCard");
+            const canvas = await html2canvas(card, {
+                backgroundColor: null,
+                scale: 3,
+                borderRadius: 48
+            });
+            const link = document.createElement("a");
+            link.download = `SwiftPass_${userNameInput.value || 'Card'}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+
+        passTypeInput.addEventListener("change", updatePlanDates);
+        updatePlanDates();
+    </script>
+</body>
+
+</html>
