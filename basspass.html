@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwiftPass Elite | Premium QR Transit System</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, rgb(57, 106, 47) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-indigo {
+            background: rgba(79, 70, 229, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(79, 70, 229, 0.3);
+        }
+
+        .premium-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite;
+        }
+
+        @keyframes pulse-subtle {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .scan-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scan-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        #reader video {
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+    <nav class="container mx-auto mb-10 flex justify-between items-center glass p-4 rounded-2xl">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <span class="text-xl">🚌</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white leading-none">SwiftPass<span
+                        class="text-orange-500">Elite</span></h1>
+                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Smart Transit Ecosystem
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:block text-right">
+                <p id="liveClock" class="text-sm font-medium text-white"></p>
+                <p class="text-[10px] text-orange-400 font-bold uppercase">System Online</p>
+            </div>
+            <div class="h-8 w-[1px] bg-white/10 hidden sm:block"></div>
+            <span
+                class="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-semibold border border-indigo-500/30">V3.0.4
+                Premium</span>
+        </div>
+    </nav>
+
+    <main class="container mx-auto grid lg:grid-cols-12 gap-8">
+        <!-- ISSUANCE SECTION -->
+        <section class="lg:col-span-12 xl:col-span-4 space-y-6">
+            <div class="glass p-8 rounded-3xl relative overflow-hidden group">
+                <div
+                    class="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-all duration-500">
+                </div>
+
+                <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-white">
+                    Issue Digital Pass
+                </h2>
+                <p class="text-sm text-slate-400 mb-8">Personalize and activate a new smart transit card.</p>
+
+                <div class="space-y-5">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold uppercase text-slate-500 ml-1">Cardholder Name</label>
+                        <input type="text" id="userName" placeholder="Enter Full Name"
+                            class="w-full bg-white/5 border border-white/10 p-3.5 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all placeholder:text-slate-600 text-white" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold uppercase text-slate-500 ml-1">Select Membership Plan</label>
+                        <select id="passType"
+                            class="w-full bg-white/5 border border-white/10 p-3.5 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none appearance-none transition-all text-white">
+                            <option value="Student" class="bg-slate-900">Student Access (30 Days)</option>
+                            <option value="General" class="bg-slate-900">General Commuter (30 Days)</option>
+                            <option value="Senior" class="bg-slate-900">Senior Citizen (365 Days)</option>
+                            <option value="Staff" class="bg-slate-900">Transit Staff (Unified)</option>
+                        </select>
+                    </div>
+
+                    <div class="glass-indigo p-4 rounded-xl flex justify-between items-center">
+                        <span class="text-sm font-medium text-indigo-300">Validity Until</span>
+                        <span id="expiryDisplay"
+                            class="text-sm font-bold text-white bg-indigo-500/20 px-2 py-1 rounded">...</span>
+                    </div>
+
+                    <button id="issueBtn"
+                        class="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold translate-y-0 hover:-translate-y-1 shadow-lg shadow-orange-500/20 transition-all active:scale-95 flex justify-center items-center gap-2">
+                        <span>Activate & Generate QR</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PREVIEW SECTION -->
+        <section class="lg:col-span-12 xl:col-span-4 flex flex-col items-center justify-center min-h-[400px]">
+            <div id="passCard"
+                class="hidden w-full max-w-sm premium-card p-6 rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 transform animate-in fade-in zoom-in duration-500">
+                <div class="flex justify-between items-start mb-10">
+                    <div class="space-y-1">
+                        <p class="text-[8px] font-bold uppercase tracking-[0.2em] text-indigo-100 opacity-70">Transit
+                            Hub</p>
+                        <h3 class="text-lg font-bold text-white tracking-tight">SWIFTPASS <span
+                                class="text-orange-400">XL</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                        <span class="text-xl">💳</span>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <p id="displayUsername" class="text-2xl font-bold text-white tracking-wide"></p>
+                    <p id="displayType" class="text-xs font-semibold text-indigo-200 mt-1 uppercase tracking-widest">
+                    </p>
+                </div>
+
+                <div class="bg-white p-4 rounded-3xl mb-8 flex justify-center shadow-inner">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="flex justify-between items-end">
+                    <div class="space-y-1">
+                        <p class="text-[8px] font-bold uppercase text-indigo-100 opacity-60">Expires On</p>
+                        <p id="displayExpiry" class="text-xs font-bold text-white"></p>
+                    </div>
+                    <button id="downloadPngBtn"
+                        class="bg-white/20 hover:bg-white/30 p-2 rounded-xl text-white transition-colors group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="placeholderText" class="text-center space-y-4 animate-pulse-subtle">
+                <div
+                    class="w-16 h-16 bg-white/5 rounded-2xl mx-auto flex items-center justify-center border border-white/10">
+                    <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                </div>
+                <p class="text-slate-500 font-medium">Ready for activation...</p>
+            </div>
+        </section>
+
+        <!-- SCANNER SECTION -->
+        <section class="lg:col-span-12 xl:col-span-4 space-y-6">
+            <div class="glass p-6 rounded-3xl border border-white/5">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Validation Deck</h2>
+                        <p class="text-xs text-slate-500 italic">Conductor terminal mode</p>
+                    </div>
+                    <button id="startScanner"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                        Open Scanner
+                    </button>
+                </div>
+
+                <div id="reader"
+                    class="rounded-2xl bg-black overflow-hidden border-2 border-white/5 aspect-square flex items-center justify-center">
+                    <p id="scannerPlaceholder" class="text-slate-600 text-sm italic">Camera feed will appear here</p>
+                </div>
+
+                <div id="scanResult"
+                    class="mt-6 p-4 rounded-2xl hidden transform animate-in slide-in-from-bottom-2 duration-300"></div>
+
+                <!-- Recent Scans History -->
+                <div class="mt-8">
+                    <h3 class="text-xs font-bold uppercase text-slate-500 tracking-widest mb-4">Recent Ingress</h3>
+                    <div id="scanList" class="space-y-2">
+                        <!-- Items injected here -->
+                        <p class="text-slate-600 text-[10px] italic py-2">No scans in current session.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- USER REGISTRY SECTION -->
+        <section class="lg:col-span-12 space-y-6">
+            <div class="glass p-8 rounded-3xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">User Registry</h2>
+                        <p class="text-sm text-slate-400">Searchable database using Hash Queue architecture.</p>
+                    </div>
+                    <div class="w-full md:w-72 relative">
+                        <input type="text" id="searchInput" placeholder="Search by name or ID..."
+                            class="w-full bg-white/5 border border-white/10 p-3 pl-10 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all placeholder:text-slate-600 text-white" />
+                        <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div id="registryList" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- User cards will be injected here -->
+                    <div class="col-span-full text-center py-10 text-slate-500 italic">
+                        No users registered yet.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // DOM Elements
+        const userNameInput = document.getElementById("userName");
+        const passTypeInput = document.getElementById("passType");
+        const expiryDisplay = document.getElementById("expiryDisplay");
+        const issueBtn = document.getElementById("issueBtn");
+        const qrDiv = document.getElementById("qrcode");
+        const scanResult = document.getElementById("scanResult");
+        const reader = document.getElementById("reader");
+        const scanList = document.getElementById("scanList");
+        const liveClock = document.getElementById("liveClock");
+        const registryList = document.getElementById("registryList");
+        const searchInput = document.getElementById("searchInput");
+
+        // --- DSA: Hash Queue (Map + Doubly Linked List) ---
+
+        // Node for Doubly Linked List
+        class UserNode {
+            constructor(data) {
+                this.data = data;
+                this.prev = null;
+                this.next = null;
+            }
+        }
+
+        // Doubly Linked List to manage activity order (Recent First)
+        class DoublyLinkedList {
+            constructor() {
+                this.head = null;
+                this.tail = null;
+            }
+
+            // Add node to the front (Most Recent)
+            addFirst(data) {
+                const newNode = new UserNode(data);
+                if (!this.head) {
+                    this.head = this.tail = newNode;
+                } else {
+                    newNode.next = this.head;
+                    this.head.prev = newNode;
+                    this.head = newNode;
+                }
+                return newNode;
+            }
+
+            // Remove a specific node from the list
+            remove(node) {
+                if (node.prev) node.prev.next = node.next;
+                if (node.next) node.next.prev = node.prev;
+                if (node === this.head) this.head = node.next;
+                if (node === this.tail) this.tail = node.prev;
+                node.prev = node.next = null;
+            }
+
+            // Move an existing node to the front
+            moveToFront(node) {
+                this.remove(node);
+                if (!this.head) {
+                    this.head = this.tail = node;
+                } else {
+                    node.next = this.head;
+                    this.head.prev = node;
+                    this.head = node;
+                }
+            }
+        }
+
+        const userRegistryList = new DoublyLinkedList();
+        const userRegistryMap = new Map(); // "Hash" part for O(1) Access
+
+        function updateRegistry(userData) {
+            const dataWithTimestamp = {
+                ...userData,
+                lastSeen: new Date().toLocaleTimeString(),
+                status: 'Active'
+            };
+
+            if (userRegistryMap.has(userData.n)) {
+                // Update existing: Update data and move node to head
+                const node = userRegistryMap.get(userData.n);
+                node.data = dataWithTimestamp;
+                userRegistryList.moveToFront(node);
+            } else {
+                // New user: Create node at head and store in map
+                const newNode = userRegistryList.addFirst(dataWithTimestamp);
+                userRegistryMap.set(userData.n, newNode);
+            }
+            renderRegistry(searchInput.value);
+        }
+
+        function renderRegistry(query = '') {
+            registryList.innerHTML = '';
+            let current = userRegistryList.head;
+            let count = 0;
+
+            // Traverse Linked List for rendering (Queue part)
+            while (current) {
+                const user = current.data;
+                const isMatch = user.n.toLowerCase().includes(query.toLowerCase()) ||
+                    user.t.toLowerCase().includes(query.toLowerCase());
+
+                if (isMatch) {
+                    const card = document.createElement('div');
+                    card.className = 'glass p-4 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-all animate-in fade-in zoom-in duration-300';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-xs">👤</div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">${user.t}</span>
+                        </div>
+                        <h4 class="text-white font-bold text-sm truncate uppercase">${user.n}</h4>
+                        <p class="text-[9px] text-slate-500 mt-1 uppercase tracking-tighter">Activity: ${user.lastSeen}</p>
+                    `;
+                    registryList.appendChild(card);
+                    count++;
+                }
+                current = current.next;
+            }
+
+            if (count === 0) {
+                registryList.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 italic">No matching users found or registry empty.</div>`;
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => renderRegistry(e.target.value));
+
+        // Logic: Live Clock
+        setInterval(() => {
+            const now = new Date();
+            liveClock.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }, 1000);
+
+        // Logic: Set Auto-Expiry
+        function updatePlanDates() {
+            const today = new Date();
+            let daysToAdd = passTypeInput.value === "Senior" ? 365 : (passTypeInput.value === "Staff" ? 999 : 30);
+            const expiryDate = new Date(today.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+            const dateString = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            expiryDisplay.innerText = dateString;
+            return dateString;
+        }
+
+        // Action: Generate QR
+        issueBtn.addEventListener("click", () => {
+            const name = userNameInput.value.trim();
+            const exp = updatePlanDates();
+
+            if (!name) {
+                userNameInput.classList.add('border-red-500');
+                setTimeout(() => userNameInput.classList.remove('border-red-500'), 2000);
+                return;
+            }
+
+            const payloadData = { n: name, t: passTypeInput.value, e: exp, id: Date.now() };
+            const payload = JSON.stringify(payloadData);
+            updateRegistry(payloadData);
+
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+                text: payload,
+                width: 140,
+                height: 140,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById("displayUsername").innerText = name.toUpperCase();
+            document.getElementById("displayType").innerText = passTypeInput.value + " Pass";
+            document.getElementById("displayExpiry").innerText = exp.toUpperCase();
+
+            document.getElementById("passCard").classList.remove("hidden");
+            document.getElementById("placeholderText").classList.add("hidden");
+
+            // Success Vibration (if mobile)
+            if (navigator.vibrate) navigator.vibrate(50);
+        });
+
+        // --- SCANNER LOGIC ---
+        const html5QrCode = new Html5Qrcode("reader");
+
+        document.getElementById("startScanner").addEventListener("click", () => {
+            document.getElementById("scannerPlaceholder").classList.add("hidden");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    validatePassData(decodedText);
+                    // html5QrCode.stop(); // Optional: stop or keep scanning
+                },
+                (errorMessage) => { /* scanning... */ }
+            ).catch(err => alert("Camera error: " + err));
+        });
+
+        function validatePassData(jsonString) {
+            try {
+                const data = JSON.parse(jsonString);
+                updateRegistry(data);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const expDate = new Date(data.e);
+                const isValid = expDate >= today;
+
+                scanResult.classList.remove("hidden");
+
+                if (isValid) {
+                    scanResult.className = "mt-6 p-4 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-center";
+                    scanResult.innerHTML = `<div class="font-bold text-lg mb-1">✅ PASS VERIFIED</div><div class="text-[10px] uppercase tracking-widest">${data.n} • ${data.t}</div>`;
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                } else {
+                    scanResult.className = "mt-6 p-4 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/30 text-center";
+                    scanResult.innerHTML = `<div class="font-bold text-lg mb-1">🛑 PASS EXPIRED</div><div class="text-[10px] uppercase tracking-widest">Access Denied for ${data.n}</div>`;
+                    if (navigator.vibrate) navigator.vibrate(500);
+                }
+
+                addToHistory(data, isValid);
+            } catch (e) {
+                scanResult.className = "mt-6 p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-center";
+                scanResult.innerHTML = `<div class="font-bold text-lg mb-1">⚠️ INVALID ASSET</div><div class="text-[10px] uppercase tracking-widest">Not a valid SwiftPass payload</div>`;
+                scanResult.classList.remove("hidden");
+            }
+        }
+
+        function addToHistory(data, isValid) {
+            if (scanList.querySelector('p')) scanList.innerHTML = ''; // Clear empty state
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const item = document.createElement("div");
+            item.className = "scan-item p-3 glass rounded-xl flex items-center justify-between border-l-2 " + (isValid ? "border-emerald-500" : "border-rose-500");
+            item.innerHTML = `
+                <div>
+                    <p class="text-[11px] font-bold text-white leading-tight">${data.n || 'Unknown'}</p>
+                    <p class="text-[9px] text-slate-500 uppercase">${data.t || 'Guest'}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-slate-400">${time}</p>
+                    <p class="text-[8px] font-bold ${isValid ? 'text-emerald-500' : 'text-rose-500'} uppercase">${isValid ? 'Auth' : 'Fail'}</p>
+                </div>
+            `;
+            scanList.prepend(item);
+
+            // Limit history
+            if (scanList.children.length > 5) scanList.lastElementChild.remove();
+        }
+
+        // Helper: Download
+        document.getElementById("downloadPngBtn").addEventListener("click", async () => {
+            const card = document.getElementById("passCard");
+            const canvas = await html2canvas(card, {
+                backgroundColor: null,
+                scale: 3,
+                borderRadius: 40
+            });
+            const link = document.createElement("a");
+            link.download = `SwiftPass_${userNameInput.value || 'Card'}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+
+        // Initialize
+        passTypeInput.addEventListener("change", updatePlanDates);
+        updatePlanDates();
+    </script>
+</body>
+
+</html>
