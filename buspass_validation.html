@@ -8,6 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
     <style>
         :root {
             --accent-indigo: #6366f1;
@@ -110,6 +115,56 @@
             border-color: var(--accent-indigo);
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
         }
+
+        .dark body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.1) 0%, transparent 40%);
+        }
+
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .input-premium {
+            background: rgba(30, 41, 59, 1);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+        }
+
+        .dark .text-slate-900 {
+            color: #f8fafc;
+        }
+
+        .dark .text-slate-700 {
+            color: #e2e8f0;
+        }
+
+        .dark .bg-white {
+            background-color: #1e293b;
+        }
+
+        .dark .bg-slate-50 {
+            background-color: #0f172a;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark .border-slate-50,
+        .dark .border-slate-100 {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .border-slate-200 {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 
@@ -132,6 +187,10 @@
             </div>
         </div>
         <div class="flex items-center gap-8">
+            <button id="themeToggle"
+                class="w-10 h-10 rounded-full glass hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">
+                <span id="themeIcon">🌙</span>
+            </button>
             <div id="liveClock"
                 class="hidden lg:block text-xs font-black text-slate-700 bg-slate-50 px-4 py-2 rounded-full border border-slate-100 tracking-widest shadow-sm">
             </div>
@@ -228,6 +287,32 @@
         const scanList = document.getElementById("scanList");
         const searchInput = document.getElementById("searchInput");
         const liveClock = document.getElementById("liveClock");
+
+        // Theme toggle logic
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+
+        function setTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeIcon.textContent = '☀️';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.textContent = '🌙';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setTheme(true);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = !document.documentElement.classList.contains('dark');
+            setTheme(isDark);
+        });
 
         setInterval(() => {
             const now = new Date();

@@ -1,0 +1,11 @@
+{
+  "name": "basspassissuance",
+  "version": "1.0.0",
+  "description": "Bus pass issuance and validation",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx -y serve ."
+  },
+  "author": "",
+  "license": "ISC"
+}
