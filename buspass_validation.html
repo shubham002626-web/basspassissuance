@@ -230,6 +230,8 @@
                 </div>
                 <!-- Hidden file input rendered outside the button group -->
                 <input type="file" id="qrUpload" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);" />
+                <!-- Dedicated off-screen div used ONLY for scanFile - never shown -->
+                <div id="qr-file-reader" style="display:none;"></div>
 
                 <div class="rounded-[2.5rem] bg-white dark:bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-700 aspect-square relative">
                     <div id="reader" class="w-full h-full absolute inset-0 flex items-center justify-center"></div>
@@ -379,6 +381,8 @@
         searchInput.addEventListener('input', (e) => loadRegistry(e.target.value));
 
         const html5QrCode = new Html5Qrcode("reader");
+        // Separate instance bound to a hidden div — used exclusively for image file scanning
+        const fileScanner = new Html5Qrcode("qr-file-reader");
         let isScanning = false;
 
         function stopScanning() {
@@ -427,26 +431,25 @@
 
         document.getElementById("stopScanner").addEventListener("click", stopScanning);
 
-        // Upload Pic button triggers the hidden file input
-        document.getElementById("uploadPicBtn").addEventListener("click", () => {
+        // Upload Pic button — force-open file picker
+        document.getElementById("uploadPicBtn").onclick = function () {
             document.getElementById("qrUpload").click();
-        });
+        };
 
-        document.getElementById("qrUpload").addEventListener("change", (e) => {
+        document.getElementById("qrUpload").addEventListener("change", function (e) {
             if (!e.target.files || e.target.files.length === 0) return;
             const imageFile = e.target.files[0];
 
-            // Use a temporary separate instance so it doesn't conflict with any live camera session
-            const tmpScanner = new Html5Qrcode("reader");
-            tmpScanner.scanFile(imageFile, true)
-                .then(decodedText => {
+            // Use the dedicated fileScanner instance (bound to hidden #qr-file-reader)
+            fileScanner.scanFile(imageFile, false)
+                .then(function (decodedText) {
                     validatePassData(decodedText);
                 })
-                .catch(() => {
-                    alert("Could not detect any valid QR code in the uploaded image. Make sure the QR code is clear and fully visible.");
+                .catch(function () {
+                    alert("Could not detect a QR code in the uploaded image. Try a clearer, higher-resolution photo.");
                 })
-                .finally(() => {
-                    e.target.value = ''; // allow re-uploading the same file
+                .finally(function () {
+                    e.target.value = '';
                 });
         });
 
