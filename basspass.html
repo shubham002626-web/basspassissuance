@@ -221,14 +221,26 @@
                         <h2 class="text-xl font-bold text-white">Validation Deck</h2>
                         <p class="text-xs text-slate-500 italic">Conductor terminal mode</p>
                     </div>
-                    <button id="startScanner"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
-                        Open Scanner
-                    </button>
+                    <div class="flex flex-wrap gap-2 justify-end">
+                        <button id="startScanner"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                            Open Scanner
+                        </button>
+                        <button id="stopScanner"
+                            class="hidden bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-rose-500/20 active:scale-95">
+                            Stop
+                        </button>
+                        <button id="uploadPicBtn"
+                            class="bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all border border-white/10 active:scale-95">
+                            Upload Pic
+                        </button>
+                    </div>
                 </div>
 
+                <input type="file" id="qrUpload" accept="image/*" class="hidden" />
+
                 <div id="reader"
-                    class="rounded-2xl bg-black overflow-hidden border-2 border-white/5 aspect-square flex items-center justify-center">
+                    class="rounded-2xl bg-black overflow-hidden border-2 border-white/5 aspect-square flex items-center justify-center relative">
                     <p id="scannerPlaceholder" class="text-slate-600 text-sm italic">Camera feed will appear here</p>
                 </div>
 
@@ -452,20 +464,86 @@
             if (navigator.vibrate) navigator.vibrate(50);
         });
 
-        // --- SCANNER LOGIC ---
+        // --- UNIFIED SCANNER LOGIC ---
         const html5QrCode = new Html5Qrcode("reader");
+        let isScanning = false;
+
+        async function ensureScannerStopped() {
+            if (isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    isScanning = false;
+                    document.getElementById("startScanner").classList.remove("hidden");
+                    document.getElementById("stopScanner").classList.add("hidden");
+                    document.getElementById("scannerPlaceholder").classList.remove("hidden");
+                } catch (err) {
+                    console.error("Failed to stop scanner:", err);
+                }
+            }
+        }
 
         document.getElementById("startScanner").addEventListener("click", () => {
+            if (isScanning) return;
             document.getElementById("scannerPlaceholder").classList.add("hidden");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    validatePassData(decodedText);
-                    // html5QrCode.stop(); // Optional: stop or keep scanning
-                },
-                (errorMessage) => { /* scanning... */ }
-            ).catch(err => alert("Camera error: " + err));
+            
+            const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+            const onSuccess = (decodedText) => {
+                validatePassData(decodedText);
+                stopScanning();
+            };
+
+            html5QrCode.start({ facingMode: "environment" }, config, onSuccess, () => { })
+                .then(() => {
+                    isScanning = true;
+                    document.getElementById("startScanner").classList.add("hidden");
+                    document.getElementById("stopScanner").classList.remove("hidden");
+                })
+                .catch(err => {
+                    html5QrCode.start({ facingMode: "user" }, config, onSuccess, () => { })
+                        .then(() => {
+                            isScanning = true;
+                            document.getElementById("startScanner").classList.add("hidden");
+                            document.getElementById("stopScanner").classList.remove("hidden");
+                        })
+                        .catch(err2 => {
+                            document.getElementById("scannerPlaceholder").classList.remove("hidden");
+                            alert("Camera access denied. Please use the 'Upload Pic' option.");
+                        });
+                });
+        });
+
+        async function stopScanning() {
+            await ensureScannerStopped();
+        }
+
+        document.getElementById("stopScanner").addEventListener("click", stopScanning);
+
+        // Upload functionality
+        document.getElementById("uploadPicBtn").onclick = () => document.getElementById("qrUpload").click();
+
+        document.getElementById("qrUpload").addEventListener("change", async (e) => {
+            if (!e.target.files || e.target.files.length === 0) return;
+            const imageFile = e.target.files[0];
+
+            // Show loading state in scanResult
+            scanResult.classList.remove("hidden");
+            scanResult.className = "mt-6 p-4 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 text-center animate-pulse";
+            scanResult.innerHTML = `<div class="font-bold">SCANNING IMAGE...</div>`;
+
+            try {
+                await ensureScannerStopped();
+                const decodedText = await html5QrCode.scanFile(imageFile, false);
+                validatePassData(decodedText);
+            } catch (err) {
+                console.error("File scanning error:", err);
+                scanResult.className = "mt-6 p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-center";
+                scanResult.innerHTML = `
+                    <div class="font-bold text-lg mb-1">⚠️ SCAN FAILED</div>
+                    <div class="text-[10px] uppercase tracking-widest">QR Not detected in image</div>
+                `;
+            } finally {
+                e.target.value = '';
+            }
         });
 
         function validatePassData(jsonString) {
@@ -480,11 +558,11 @@
                 scanResult.classList.remove("hidden");
 
                 if (isValid) {
-                    scanResult.className = "mt-6 p-4 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-center";
+                    scanResult.className = "mt-6 p-4 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-center animate-in zoom-in duration-300";
                     scanResult.innerHTML = `<div class="font-bold text-lg mb-1">✅ PASS VERIFIED</div><div class="text-[10px] uppercase tracking-widest">${data.n} • ${data.t}</div>`;
                     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 } else {
-                    scanResult.className = "mt-6 p-4 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/30 text-center";
+                    scanResult.className = "mt-6 p-4 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/30 text-center animate-in zoom-in duration-300";
                     scanResult.innerHTML = `<div class="font-bold text-lg mb-1">🛑 PASS EXPIRED</div><div class="text-[10px] uppercase tracking-widest">Access Denied for ${data.n}</div>`;
                     if (navigator.vibrate) navigator.vibrate(500);
                 }
@@ -492,7 +570,7 @@
                 addToHistory(data, isValid);
             } catch (e) {
                 scanResult.className = "mt-6 p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-center";
-                scanResult.innerHTML = `<div class="font-bold text-lg mb-1">⚠️ INVALID ASSET</div><div class="text-[10px] uppercase tracking-widest">Not a valid SwiftPass payload</div>`;
+                scanResult.innerHTML = `<div class="font-bold text-lg mb-1">⚠️ INVALID PAYLOAD</div><div class="text-[10px] uppercase tracking-widest">Not a valid SwiftPass QR</div>`;
                 scanResult.classList.remove("hidden");
             }
         }

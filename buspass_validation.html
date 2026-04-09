@@ -316,7 +316,6 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
 
-        // Initialize theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             setTheme(true);
@@ -339,7 +338,6 @@
 
         function renderRegistry(data, query = '') {
             registryList.innerHTML = '';
-
             const filteredData = data.filter(user =>
                 user.n.toLowerCase().includes(query.toLowerCase()) ||
                 user.t.toLowerCase().includes(query.toLowerCase())
@@ -380,20 +378,21 @@
 
         searchInput.addEventListener('input', (e) => loadRegistry(e.target.value));
 
+        // --- UNIFIED SCANNER LOGIC ---
         const html5QrCode = new Html5Qrcode("reader");
-        // Separate instance bound to a hidden div — used exclusively for image file scanning
-        const fileScanner = new Html5Qrcode("qr-file-reader");
         let isScanning = false;
 
-        function stopScanning() {
+        async function ensureScannerStopped() {
             if (isScanning) {
-                html5QrCode.stop().then(() => {
+                try {
+                    await html5QrCode.stop();
                     isScanning = false;
-                    html5QrCode.clear();
-                    document.getElementById("scannerPlaceholder").classList.remove("hidden");
                     document.getElementById("startScanner").classList.remove("hidden");
                     document.getElementById("stopScanner").classList.add("hidden");
-                }).catch(err => console.error(err));
+                    document.getElementById("scannerPlaceholder").classList.remove("hidden");
+                } catch (err) {
+                    console.error("Failed to stop scanner:", err);
+                }
             }
         }
 
@@ -407,7 +406,6 @@
                 stopScanning();
             };
 
-            // Attempt to start environment-facing camera first
             html5QrCode.start({ facingMode: "environment" }, config, onSuccess, () => { })
                 .then(() => {
                     isScanning = true;
@@ -415,7 +413,6 @@
                     document.getElementById("stopScanner").classList.remove("hidden");
                 })
                 .catch(err => {
-                    // Fallback to user-facing camera if environment fails
                     html5QrCode.start({ facingMode: "user" }, config, onSuccess, () => { })
                         .then(() => {
                             isScanning = true;
@@ -424,33 +421,42 @@
                         })
                         .catch(err2 => {
                             document.getElementById("scannerPlaceholder").classList.remove("hidden");
-                            alert("Camera access denied or unavailable. Please upload a picture of the QR code instead.");
+                            alert("Camera access denied. Please use 'Upload Pic'.");
                         });
                 });
         });
 
+        async function stopScanning() {
+            await ensureScannerStopped();
+        }
+
         document.getElementById("stopScanner").addEventListener("click", stopScanning);
 
-        // Upload Pic button — force-open file picker
-        document.getElementById("uploadPicBtn").onclick = function () {
-            document.getElementById("qrUpload").click();
-        };
+        document.getElementById("uploadPicBtn").onclick = () => document.getElementById("qrUpload").click();
 
-        document.getElementById("qrUpload").addEventListener("change", function (e) {
+        document.getElementById("qrUpload").addEventListener("change", async (e) => {
             if (!e.target.files || e.target.files.length === 0) return;
             const imageFile = e.target.files[0];
 
-            // Use the dedicated fileScanner instance (bound to hidden #qr-file-reader)
-            fileScanner.scanFile(imageFile, false)
-                .then(function (decodedText) {
-                    validatePassData(decodedText);
-                })
-                .catch(function () {
-                    alert("Could not detect a QR code in the uploaded image. Try a clearer, higher-resolution photo.");
-                })
-                .finally(function () {
-                    e.target.value = '';
-                });
+            scanResult.classList.remove("hidden");
+            scanResult.className = "mt-8 p-6 rounded-[2rem] bg-indigo-50 text-indigo-600 border border-indigo-100 text-center animate-pulse";
+            scanResult.innerHTML = `<div class="text-sm font-bold uppercase tracking-widest">Scanning Image...</div>`;
+
+            try {
+                await ensureScannerStopped();
+                const decodedText = await html5QrCode.scanFile(imageFile, false);
+                validatePassData(decodedText);
+            } catch (err) {
+                console.error("File scanning error:", err);
+                scanResult.className = "mt-8 p-8 rounded-[2.5rem] bg-amber-50 text-amber-600 border border-amber-100 text-center animate-in zoom-in";
+                scanResult.innerHTML = `
+                    <div class="text-xs font-black uppercase tracking-widest mb-2">Scan Failed</div>
+                    <div class="text-xl font-black">QR NOT DETECTED</div>
+                    <p class="text-[10px] mt-2 font-bold opacity-70">Try a clearer photo with good lighting.</p>
+                `;
+            } finally {
+                e.target.value = '';
+            }
         });
 
         function validatePassData(jsonString) {
@@ -485,7 +491,10 @@
                 loadRegistry();
             } catch (e) {
                 scanResult.className = "mt-8 p-8 rounded-[2.5rem] bg-amber-50 text-amber-600 border border-amber-100 text-center";
-                scanResult.innerHTML = `<div class="text-2xl font-black">UNKNOWN ASSET</div>`;
+                scanResult.innerHTML = `
+                    <div class="text-xl font-black mb-1">INVALID QR</div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest opacity-60">Not a valid SwiftPass payload</div>
+                `;
                 scanResult.classList.remove("hidden");
             }
         }
@@ -494,7 +503,7 @@
             if (scanList.querySelector('p')) scanList.innerHTML = '';
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             const item = document.createElement("div");
-            item.className = `glass rounded-2xl p-4 flex items-center justify-between border-l-4 ${isValid ? 'border-emerald-500' : 'border-rose-500'} shadow-sm`;
+            item.className = `glass rounded-2xl p-4 flex items-center justify-between border-l-4 ${isValid ? 'border-emerald-500' : 'border-rose-500'} shadow-sm animate-in slide-in-from-left-2`;
             item.innerHTML = `
                 <div>
                     <p class="text-xs font-black text-slate-900 uppercase">${data.n || 'Unknown'}</p>
