@@ -222,13 +222,14 @@
                             class="hidden bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 active:scale-95">
                             Stop
                         </button>
-                        <label for="qrUpload"
-                            class="cursor-pointer bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center active:scale-95 border border-transparent dark:border-slate-700">
+                        <button id="uploadPicBtn"
+                            class="bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center active:scale-95 border border-transparent dark:border-slate-700">
                             Upload Pic
-                        </label>
-                        <input type="file" id="qrUpload" accept="image/*" class="hidden" />
+                        </button>
                     </div>
                 </div>
+                <!-- Hidden file input rendered outside the button group -->
+                <input type="file" id="qrUpload" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);" />
 
                 <div class="rounded-[2.5rem] bg-white dark:bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-700 aspect-square relative">
                     <div id="reader" class="w-full h-full absolute inset-0 flex items-center justify-center"></div>
@@ -426,18 +427,27 @@
 
         document.getElementById("stopScanner").addEventListener("click", stopScanning);
 
+        // Upload Pic button triggers the hidden file input
+        document.getElementById("uploadPicBtn").addEventListener("click", () => {
+            document.getElementById("qrUpload").click();
+        });
+
         document.getElementById("qrUpload").addEventListener("change", (e) => {
-            if (e.target.files.length == 0) return;
+            if (!e.target.files || e.target.files.length === 0) return;
             const imageFile = e.target.files[0];
-            
-            html5QrCode.scanFile(imageFile, true)
+
+            // Use a temporary separate instance so it doesn't conflict with any live camera session
+            const tmpScanner = new Html5Qrcode("reader");
+            tmpScanner.scanFile(imageFile, true)
                 .then(decodedText => {
                     validatePassData(decodedText);
                 })
-                .catch(err => {
-                    alert("Could not detect any valid QR code in the uploaded image.");
+                .catch(() => {
+                    alert("Could not detect any valid QR code in the uploaded image. Make sure the QR code is clear and fully visible.");
+                })
+                .finally(() => {
+                    e.target.value = ''; // allow re-uploading the same file
                 });
-            e.target.value = ''; // allow uploading the same file again if needed
         });
 
         function validatePassData(jsonString) {
