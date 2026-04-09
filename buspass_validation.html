@@ -213,23 +213,33 @@
                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Terminal Active
                         </p>
                     </div>
-                    <button id="startScanner"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
-                        Ignite Sensor
-                    </button>
+                    <div class="flex flex-wrap gap-2 justify-end">
+                        <button id="startScanner"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                            Camera
+                        </button>
+                        <button id="stopScanner"
+                            class="hidden bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 active:scale-95">
+                            Stop
+                        </button>
+                        <label for="qrUpload"
+                            class="cursor-pointer bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center active:scale-95 border border-transparent dark:border-slate-700">
+                            Upload Pic
+                        </label>
+                        <input type="file" id="qrUpload" accept="image/*" class="hidden" />
+                    </div>
                 </div>
 
-                <div id="reader"
-                    class="rounded-[2.5rem] bg-white overflow-hidden border border-slate-100 aspect-square flex items-center justify-center relative">
-                    <div id="scannerPlaceholder" class="text-center space-y-4 opacity-50">
-                        <div
-                            class="w-16 h-16 border-2 border-dashed border-slate-200 rounded-2xl mx-auto flex items-center justify-center">
-                            <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="rounded-[2.5rem] bg-white dark:bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-700 aspect-square relative">
+                    <div id="reader" class="w-full h-full absolute inset-0 flex items-center justify-center"></div>
+                    <div id="scannerPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center space-y-4 opacity-50 bg-white dark:bg-slate-800 z-10 transition-opacity duration-300">
+                        <div class="w-16 h-16 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl mx-auto flex items-center justify-center">
+                            <svg class="w-6 h-6 text-slate-300 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             </svg>
                         </div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Awaiting Lens</p>
+                        <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Awaiting Lens</p>
                     </div>
                 </div>
 
@@ -368,15 +378,66 @@
         searchInput.addEventListener('input', (e) => loadRegistry(e.target.value));
 
         const html5QrCode = new Html5Qrcode("reader");
+        let isScanning = false;
+
+        function stopScanning() {
+            if (isScanning) {
+                html5QrCode.stop().then(() => {
+                    isScanning = false;
+                    html5QrCode.clear();
+                    document.getElementById("scannerPlaceholder").classList.remove("hidden");
+                    document.getElementById("startScanner").classList.remove("hidden");
+                    document.getElementById("stopScanner").classList.add("hidden");
+                }).catch(err => console.error(err));
+            }
+        }
 
         document.getElementById("startScanner").addEventListener("click", () => {
+            if (isScanning) return;
             document.getElementById("scannerPlaceholder").classList.add("hidden");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 280, height: 280 } },
-                (decodedText) => validatePassData(decodedText),
-                () => { }
-            ).catch(err => alert("Sensor Error: " + err));
+            
+            const config = { fps: 15, qrbox: { width: 280, height: 280 } };
+            const onSuccess = (decodedText) => {
+                validatePassData(decodedText);
+                stopScanning();
+            };
+
+            // Attempt to start environment-facing camera first
+            html5QrCode.start({ facingMode: "environment" }, config, onSuccess, () => { })
+                .then(() => {
+                    isScanning = true;
+                    document.getElementById("startScanner").classList.add("hidden");
+                    document.getElementById("stopScanner").classList.remove("hidden");
+                })
+                .catch(err => {
+                    // Fallback to user-facing camera if environment fails
+                    html5QrCode.start({ facingMode: "user" }, config, onSuccess, () => { })
+                        .then(() => {
+                            isScanning = true;
+                            document.getElementById("startScanner").classList.add("hidden");
+                            document.getElementById("stopScanner").classList.remove("hidden");
+                        })
+                        .catch(err2 => {
+                            document.getElementById("scannerPlaceholder").classList.remove("hidden");
+                            alert("Camera access denied or unavailable. Please upload a picture of the QR code instead.");
+                        });
+                });
+        });
+
+        document.getElementById("stopScanner").addEventListener("click", stopScanning);
+
+        document.getElementById("qrUpload").addEventListener("change", (e) => {
+            if (e.target.files.length == 0) return;
+            const imageFile = e.target.files[0];
+            
+            html5QrCode.scanFile(imageFile, true)
+                .then(decodedText => {
+                    validatePassData(decodedText);
+                })
+                .catch(err => {
+                    alert("Could not detect any valid QR code in the uploaded image.");
+                });
+            e.target.value = ''; // allow uploading the same file again if needed
         });
 
         function validatePassData(jsonString) {
