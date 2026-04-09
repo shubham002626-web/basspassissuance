@@ -283,9 +283,10 @@
                     </div>
                 </div>
 
-                <div class="relative z-10 flex flex-col md:flex-row items-center gap-8 mb-12">
-                    <div class="bg-white p-5 rounded-[2.5rem] shadow-2xl">
-                        <div id="qrcode"></div>
+                <div class="relative z-10 flex flex-col md:flex-row items-center gap-10 mb-12">
+                    <div class="p-6 bg-white rounded-[3rem] shadow-2xl relative group">
+                        <div class="absolute -inset-2 bg-gradient-to-r from-orange-500 to-indigo-500 rounded-[3.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                        <div id="qrcode" class="relative bg-white p-2 rounded-2xl"></div>
                     </div>
                     <div class="flex-1 space-y-4 text-center md:text-left">
                         <div>
@@ -301,12 +302,18 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center relative z-10 pt-6 border-t border-white/10">
-                    <p class="text-[9px] font-bold text-indigo-200 opacity-40 uppercase tracking-widest leading-none">
-                        Metro Unified Access</p>
+                <div class="flex justify-between items-center relative z-10 pt-8 border-t border-white/10">
+                    <div class="flex flex-col">
+                        <p class="text-[9px] font-bold text-indigo-200 opacity-40 uppercase tracking-[0.3em] mb-1">Status</p>
+                        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Valid Asset
+                        </p>
+                    </div>
                     <button id="downloadPngBtn"
-                        class="bg-white/10 hover:bg-white/20 p-3 rounded-xl transition-all border border-white/10 group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform text-white" fill="none"
+                        title="Download QR Only"
+                        class="bg-white/10 hover:bg-orange-500 text-white p-4 rounded-2xl transition-all border border-white/10 group shadow-lg flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Download QR</span>
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -399,8 +406,8 @@
             qrDiv.innerHTML = "";
             new QRCode(qrDiv, {
                 text: JSON.stringify(payloadData),
-                width: 160,
-                height: 160,
+                width: 200, // Increased size for better scannability
+                height: 200,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
@@ -417,16 +424,13 @@
             if (navigator.vibrate) navigator.vibrate(50);
         });
 
-        document.getElementById("downloadPngBtn").addEventListener("click", async () => {
-            const card = document.getElementById("passCard");
-            const canvas = await html2canvas(card, {
-                backgroundColor: null,
-                scale: 3,
-                borderRadius: 48
-            });
+        document.getElementById("downloadPngBtn").addEventListener("click", () => {
+            const qrImg = qrDiv.querySelector('img');
+            if (!qrImg) return;
+            
             const link = document.createElement("a");
-            link.download = `SwiftPass_${userNameInput.value || 'Card'}.png`;
-            link.href = canvas.toDataURL("image/png");
+            link.download = `SwiftPass_QR_${userNameInput.value || 'Pass'}.png`;
+            link.href = qrImg.src;
             link.click();
         });
 
